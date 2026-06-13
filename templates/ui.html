@@ -155,10 +155,10 @@
     <p>Upload the JSON output from <strong>sophos-policy-checker</strong> to enrich each finding with real-world attack scenarios.</p>
 
     <div id="dropzone">
-      <input type="file" id="file-input" accept=".json,application/json" />
+      <input type="file" id="file-input" accept=".json,.pdf,application/json,application/pdf" />
       <div class="drop-icon">📂</div>
-      <div class="drop-label">Drop your findings.json here</div>
-      <div class="drop-sub">or click to browse · JSON only · max 10 MB</div>
+      <div class="drop-label">Drop your report here</div>
+      <div class="drop-sub">or click to browse · PDF or JSON · max 10 MB</div>
       <div id="file-name"></div>
     </div>
 
@@ -264,8 +264,10 @@
   });
 
   function selectFile(f) {
-    if (!f.name.endsWith('.json') && f.type !== 'application/json') {
-      showError('Please upload a .json file.'); return;
+    const validExt = f.name.endsWith('.json') || f.name.endsWith('.pdf');
+    const validType = ['application/json', 'application/pdf'].includes(f.type);
+    if (!validExt && !validType) {
+      showError('Please upload a .pdf or .json file.'); return;
     }
     selectedFile = f;
     fileName.textContent = `✓ ${f.name} (${(f.size/1024).toFixed(1)} KB)`;

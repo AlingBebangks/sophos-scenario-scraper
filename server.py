@@ -48,43 +48,14 @@ MAX_UPLOAD_MB = 10
 # Background enrichment task
 # ---------------------------------------------------------------------------
 
-def _run_enrichment(token: str, raw_bytes: bytes, skip_nvd: bool, skip_news: bool, skip_mitre: bool) -> None:
+def _run_enrichment(token: str, raw_bytes: bytes, filename: str, skip_nvd: bool, skip_news: bool, skip_mitre: bool) -> None:
     """Runs in a thread. Updates _jobs[token] as it progresses."""
     try:
         _jobs[token]["status"] = "parsing"
         _jobs[token]["message"] = "Parsing findings feed..."
 
-        import io, json as _json
-        try:
-            data = _json.loads(raw_bytes.decode("utf-8"))
-        except Exception as e:
-            raise ValueError(f"Invalid JSON: {e}")
-
-        # Normalise using feedfile loader logic (accepts dict or list)
-        if isinstance(data, list):
-            raw_findings = data
-        elif isinstance(data, dict):
-            raw_findings = data.get("findings") or data.get("results") or data.get("checks") or []
-        else:
-            raise ValueError("Unexpected JSON structure.")
-
-        if not raw_findings:
-            raise ValueError("No findings found in uploaded file.")
-
-        findings = []
-        for item in raw_findings:
-            if not isinstance(item, dict):
-                continue
-            findings.append({
-                "severity":       item.get("severity", "INFO"),
-                "category":       item.get("category", "General"),
-                "title":          item.get("title", "Unnamed Finding"),
-                "detail":         item.get("detail", ""),
-                "recommendation": item.get("recommendation", ""),
-                "references":     item.get("references", []),
-                "affected_rules": item.get("affected_rules", []),
-                "affected_systems": item.get("affected_systems", []),
-            })
+        from feedfile import load_findings_from_bytes
+        findings = load_findings_from_bytes(raw_bytes, filename)
 
         _jobs[token]["total"] = len(findings)
         _jobs[token]["status"] = "enriching"
@@ -173,7 +144,7 @@ async def enrich(
     loop.run_in_executor(
         _executor,
         _run_enrichment,
-        token, content, skip_nvd, skip_news, skip_mitre,
+        token, content, file.filename or "upload.json", skip_nvd, skip_news, skip_mitre,
     )
 
     return JSONResponse({"token": token})
