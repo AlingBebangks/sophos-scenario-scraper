@@ -98,6 +98,39 @@
 
   footer { text-align: center; color: var(--muted); font-size: 11px;
     padding: 32px; border-top: 1px solid var(--border); margin-top: 16px; }
+
+  @media print {
+    @page { margin: 15mm 12mm; size: A4; }
+    body { background: #fff !important; color: #111 !important; font-size: 11px; }
+    header { background: #1a2340 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 14px 24px; }
+    header h1 { color: #fff !important; font-size: 16px; }
+    header .meta { color: #aab !important; }
+    .container { padding: 16px 0; }
+    .finding-card { border: 1px solid #ccc !important; background: #fafafa !important;
+      break-inside: avoid; page-break-inside: avoid; margin-bottom: 16px; }
+    .card-header { background: #eee !important; }
+    .card-header h2 { color: #111 !important; font-size: 13px; }
+    .category { color: #555 !important; }
+    .technique-item, .news-item { background: #f0f0f0 !important; }
+    p.detail, p.scenario, .technique-desc, .proc-item, .news-excerpt { color: #333 !important; }
+    .section-label { color: #1a5fbc !important; }
+    .technique-name { color: #111 !important; }
+    .news-meta, .muted { color: #666 !important; }
+    .cve-id { color: #1a5fbc !important; }
+    .technique-link { color: #1a5fbc !important; }
+    .news-title { color: #1a1a1a !important; }
+    a { color: #1a5fbc !important; }
+    .tag { background: #e8e8f0 !important; color: #445 !important; border-color: #bbc !important; }
+    table.cve-table th { color: #555 !important; border-color: #ccc !important; }
+    table.cve-table td { color: #333 !important; border-color: #eee !important; }
+    footer { color: #888 !important; border-color: #ccc !important; }
+    .sev-pill, .sev-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sev-CRITICAL, .cvss-CRITICAL { background: #c0392b !important; color: #fff !important; }
+    .sev-HIGH,     .cvss-HIGH     { background: #e67e22 !important; color: #fff !important; }
+    .sev-MEDIUM,   .cvss-MEDIUM   { background: #f1c40f !important; color: #000 !important; }
+    .sev-LOW,      .cvss-LOW      { background: #27ae60 !important; color: #fff !important; }
+    .sev-INFO                     { background: #2980b9 !important; color: #fff !important; }
+  }
 </style>
 </head>
 <body>

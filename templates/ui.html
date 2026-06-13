@@ -394,8 +394,9 @@
     progressCard.style.display = 'none';
     resultCard.style.display = 'block';
     resultSub.textContent = `${job.finding_count || ''} findings enriched · token: ${token.slice(0,12)}…`;
-    btnPdf.href = `/result/${token}/pdf`;
-    btnPdf.download = `report_${token.slice(0,8)}.pdf`;
+    btnPdf.href = `/result/${token}/print`;
+    btnPdf.target = '_blank';
+    btnPdf.removeAttribute('download');
     btnJson.href = `/result/${token}/json`;
     btnJson.download = `enriched_${token.slice(0,8)}.json`;
 
@@ -450,7 +451,7 @@
           ${j.status === 'done' ? '✓ Done' : j.status === 'error' ? '✗ Error' : '⟳ Running'}
         </span>
         ${j.status === 'done' ? `<a class="btn btn-secondary" style="padding:5px 12px;font-size:12px" href="/result/${j.token}/report" target="_blank">View</a>
-          <a class="btn btn-download" style="padding:5px 12px;font-size:12px" href="/result/${j.token}/pdf" download>PDF</a>
+          <a class="btn btn-download" style="padding:5px 12px;font-size:12px" href="/result/${j.token}/print" target="_blank">PDF</a>
           <a class="btn btn-download" style="padding:5px 12px;font-size:12px" href="/result/${j.token}/json" download>JSON</a>` : ''}
       </div>`).join('');
   }
