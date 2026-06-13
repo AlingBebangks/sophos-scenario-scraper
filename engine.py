@@ -21,6 +21,26 @@ from scrapers.news import fetch_news
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
 
 
+# ---------------------------------------------------------------------------
+# Per-finding fetch helpers — used by both CLI enrich() and the web server
+# ---------------------------------------------------------------------------
+
+def _fetch_mitre(technique_ids: list[str]) -> list[dict]:
+    if not technique_ids:
+        return []
+    return fetch_techniques(technique_ids)
+
+
+def _fetch_nvd(title: str) -> list[dict]:
+    return nvd_enrich(title)
+
+
+def _fetch_news(title: str) -> list[dict]:
+    return fetch_news(title)
+
+
+# ---------------------------------------------------------------------------
+
 def enrich(findings: list[dict], verbose: bool = True) -> list[dict]:
     """
     Enrich a list of normalised findings with scenario data.
@@ -43,19 +63,17 @@ def enrich(findings: list[dict], verbose: bool = True) -> list[dict]:
 
             # --- MITRE ATT&CK -------------------------------------------------
             technique_ids = extract_technique_ids(finding)
-            ef["mitre_techniques"] = []
             if technique_ids:
                 progress.update(task, description=f"[cyan]MITRE: {', '.join(technique_ids)}")
-                techniques = fetch_techniques(technique_ids)
-                ef["mitre_techniques"] = techniques
+            ef["mitre_techniques"] = _fetch_mitre(technique_ids)
 
             # --- NVD CVEs -----------------------------------------------------
             progress.update(task, description=f"[cyan]NVD: {finding['title'][:40]}")
-            ef["cves"] = nvd_enrich(finding["title"])
+            ef["cves"] = _fetch_nvd(finding["title"])
 
             # --- News articles ------------------------------------------------
             progress.update(task, description=f"[cyan]News: {finding['title'][:40]}")
-            ef["news_articles"] = fetch_news(finding["title"])
+            ef["news_articles"] = _fetch_news(finding["title"])
 
             # Build a combined scenario narrative for quick reading
             ef["scenario_summary"] = _build_scenario_summary(ef)
