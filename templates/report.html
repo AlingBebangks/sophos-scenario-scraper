@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Scenario Enrichment Report — {{ generated_at }}</title>
+<style>
+  :root {
+    --critical: #c0392b; --high: #e67e22; --medium: #f1c40f;
+    --low: #27ae60; --info: #2980b9; --bg: #0f1117; --card: #1a1d27;
+    --border: #2c2f3e; --text: #dce1f0; --muted: #7a7f94;
+    --accent: #4f8ef7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; }
+  header { background: #111420; border-bottom: 2px solid var(--accent); padding: 24px 40px; }
+  header h1 { font-size: 22px; color: #fff; letter-spacing: 0.5px; }
+  header .meta { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+  .summary-bar {
+    display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap;
+  }
+  .sev-pill {
+    padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    letter-spacing: 0.6px;
+  }
+  .sev-CRITICAL { background: var(--critical); color: #fff; }
+  .sev-HIGH     { background: var(--high);     color: #fff; }
+  .sev-MEDIUM   { background: var(--medium);   color: #000; }
+  .sev-LOW      { background: var(--low);      color: #fff; }
+  .sev-INFO     { background: var(--info);     color: #fff; }
+
+  .finding-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; margin-bottom: 28px; overflow: hidden;
+  }
+  .card-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+  }
+  .sev-badge {
+    font-size: 11px; font-weight: 700; padding: 3px 10px;
+    border-radius: 4px; letter-spacing: 0.5px; white-space: nowrap;
+  }
+  .card-header h2 { font-size: 15px; color: #fff; }
+  .card-header .category { color: var(--muted); font-size: 12px; margin-left: auto; }
+
+  .card-body { padding: 18px 20px; }
+  .section-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--accent); margin: 16px 0 6px;
+  }
+  .section-label:first-child { margin-top: 0; }
+  p.detail { color: #b0b8d0; margin-bottom: 8px; }
+  p.scenario { background: #12151e; border-left: 3px solid var(--accent);
+    padding: 10px 14px; border-radius: 0 4px 4px 0; color: #c8d0e8; font-size: 13px; }
+
+  /* Techniques */
+  .technique-list { display: flex; flex-direction: column; gap: 10px; }
+  .technique-item { background: #12151e; border-radius: 6px; padding: 12px 14px; }
+  .technique-id { font-weight: 700; color: var(--accent); font-size: 13px; }
+  .technique-name { font-weight: 600; margin-left: 8px; }
+  .technique-desc { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .technique-link { font-size: 11px; color: #5a9cf7; text-decoration: none; }
+  .technique-link:hover { text-decoration: underline; }
+
+  .proc-list { margin-top: 8px; }
+  .proc-item { border-left: 2px solid #2c2f3e; padding-left: 10px; margin-top: 6px; font-size: 12px; color: #a0a8c0; }
+  .proc-actor { font-weight: 600; color: #c8d0e8; }
+
+  /* CVE table */
+  table.cve-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.cve-table th { text-align: left; color: var(--muted); font-size: 11px;
+    border-bottom: 1px solid var(--border); padding: 6px 8px; }
+  table.cve-table td { padding: 7px 8px; border-bottom: 1px solid #1e2130; vertical-align: top; }
+  table.cve-table tr:last-child td { border-bottom: none; }
+  .cve-id { color: var(--accent); font-weight: 600; text-decoration: none; }
+  .cve-id:hover { text-decoration: underline; }
+  .cvss-badge { font-size: 11px; padding: 2px 7px; border-radius: 3px; font-weight: 700; }
+  .cvss-CRITICAL { background: var(--critical); color: #fff; }
+  .cvss-HIGH     { background: var(--high);     color: #fff; }
+  .cvss-MEDIUM   { background: var(--medium);   color: #000; }
+  .cvss-LOW      { background: var(--low);      color: #fff; }
+
+  /* News */
+  .news-list { display: flex; flex-direction: column; gap: 8px; }
+  .news-item { background: #12151e; border-radius: 6px; padding: 10px 14px; }
+  .news-title { color: #e0e6f8; font-weight: 600; font-size: 13px; text-decoration: none; }
+  .news-title:hover { text-decoration: underline; }
+  .news-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .news-excerpt { font-size: 12px; color: #8a90a8; margin-top: 5px; }
+
+  /* Affected rules */
+  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { background: #1e2235; border: 1px solid #2c3050; border-radius: 4px;
+    padding: 2px 8px; font-size: 11px; color: #8090c0; font-family: monospace; }
+
+  footer { text-align: center; color: var(--muted); font-size: 11px;
+    padding: 32px; border-top: 1px solid var(--border); margin-top: 16px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Sophos Firewall — Scenario Enrichment Report</h1>
+  <div class="meta">Generated: {{ generated_at }} &nbsp;|&nbsp; {{ findings|length }} findings enriched</div>
+</header>
+
+<div class="container">
+
+  <!-- Severity summary bar -->
+  <div class="summary-bar">
+    {% for sev, count in severity_counts.items() %}
+    <span class="sev-pill sev-{{ sev }}">{{ sev }}: {{ count }}</span>
+    {% endfor %}
+  </div>
+
+  {% for f in findings %}
+  <div class="finding-card">
+    <div class="card-header">
+      <span class="sev-badge sev-{{ f.severity }}">{{ f.severity }}</span>
+      <h2>{{ f.title }}</h2>
+      <span class="category">{{ f.category }}</span>
+    </div>
+    <div class="card-body">
+
+      <div class="section-label">Finding Detail</div>
+      <p class="detail">{{ f.detail }}</p>
+
+      <div class="section-label">Recommendation</div>
+      <p class="detail">{{ f.recommendation }}</p>
+
+      {% if f.scenario_summary and f.scenario_summary != "No scenario data retrieved." %}
+      <div class="section-label">Scenario Summary</div>
+      <p class="scenario">{{ f.scenario_summary }}</p>
+      {% endif %}
+
+      {% if f.mitre_techniques %}
+      <div class="section-label">MITRE ATT&CK Techniques</div>
+      <div class="technique-list">
+        {% for t in f.mitre_techniques %}
+        <div class="technique-item">
+          <div>
+            <span class="technique-id">{{ t.technique_id }}</span>
+            {% if t.name %}<span class="technique-name">{{ t.name }}</span>{% endif %}
+            &nbsp;
+            <a class="technique-link" href="{{ t.url }}" target="_blank">↗ MITRE</a>
+          </div>
+          {% if t.description %}
+          <div class="technique-desc">{{ t.description[:300] }}{% if t.description|length > 300 %}…{% endif %}</div>
+          {% endif %}
+          {% if t.procedure_examples %}
+          <div class="proc-list">
+            {% for p in t.procedure_examples[:3] %}
+            <div class="proc-item">
+              <span class="proc-actor">{{ p.actor }}</span>
+              {% if p.usage %} — {{ p.usage[:200] }}{% if p.usage|length > 200 %}…{% endif %}{% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if f.cves %}
+      <div class="section-label">Related CVEs (NVD)</div>
+      <table class="cve-table">
+        <thead>
+          <tr><th>CVE</th><th>CVSS</th><th>Published</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          {% for c in f.cves %}
+          <tr>
+            <td><a class="cve-id" href="{{ c.url }}" target="_blank">{{ c.cve_id }}</a></td>
+            <td>
+              {% if c.cvss_score %}
+              <span class="cvss-badge cvss-{{ c.cvss_severity }}">{{ c.cvss_score }} {{ c.cvss_severity }}</span>
+              {% else %}—{% endif %}
+            </td>
+            <td style="white-space:nowrap;color:#7a7f94">{{ c.published }}</td>
+            <td style="color:#a0a8c0">{{ c.description[:200] }}{% if c.description|length > 200 %}…{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+
+      {% if f.news_articles %}
+      <div class="section-label">Real-World Incidents &amp; News</div>
+      <div class="news-list">
+        {% for a in f.news_articles %}
+        <div class="news-item">
+          <a class="news-title" href="{{ a.url }}" target="_blank">{{ a.title }}</a>
+          <div class="news-meta">{{ a.source }} {% if a.date %}· {{ a.date }}{% endif %}</div>
+          {% if a.excerpt %}<div class="news-excerpt">{{ a.excerpt }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if f.affected_rules %}
+      <div class="section-label">Affected Rules</div>
+      <div class="tag-list">
+        {% for rule in f.affected_rules %}
+        <span class="tag">{{ rule }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+  {% endfor %}
+
+</div>
+<footer>scenario-scraper · AIVAPT project · {{ generated_at }}</footer>
+</body>
+</html>
