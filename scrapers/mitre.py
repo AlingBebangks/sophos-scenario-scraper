@@ -12,7 +12,8 @@ from bs4 import BeautifulSoup
 
 # MITRE ATT&CK TAXII 2.1 public server
 TAXII_ROOT = "https://attack-taxii.mitre.org/api/v21"
-COLLECTION_ENTERPRISE = "x-mitre-collection--1f5565b5-a0e5-420b-b0a4-6c6a3cd34b18"
+# Fallback collection ID — overridden at runtime by _resolve_collection()
+_COLLECTION_ID = "x-mitre-collection--1f5565b5-a0e5-420b-b0a4-6c6a3cd34b18"
 
 _SESSION = requests.Session()
 _SESSION.headers.update({
@@ -24,10 +25,37 @@ _SESSION.headers.update({
 _cache: dict[str, dict] = {}
 
 
+def _resolve_collection() -> str:
+    """
+    Discover the Enterprise ATT&CK collection ID via the TAXII /collections
+    endpoint at runtime. Falls back to the hardcoded ID if discovery fails.
+    """
+    global _COLLECTION_ID
+    try:
+        r = _SESSION.get(f"{TAXII_ROOT}/collections/", timeout=10)
+        r.raise_for_status()
+        collections = r.json().get("collections", [])
+        for c in collections:
+            title = c.get("title", "").lower()
+            if "enterprise" in title and "att&ck" in title:
+                _COLLECTION_ID = c["id"]
+                break
+    except Exception:
+        pass  # keep the hardcoded fallback
+    return _COLLECTION_ID
+
+
+# Resolve once at import time (non-blocking — uses hardcoded ID if network fails)
+try:
+    _resolve_collection()
+except Exception:
+    pass
+
+
 def _taxii_objects(technique_id: str) -> list[dict]:
     """Query TAXII for STIX objects matching a technique external_id."""
     url = (
-        f"{TAXII_ROOT}/collections/{COLLECTION_ENTERPRISE}/objects/"
+        f"{TAXII_ROOT}/collections/{_COLLECTION_ID}/objects/"
         f"?match[external_references.external_id]={technique_id}"
     )
     try:

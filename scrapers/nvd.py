@@ -98,7 +98,7 @@ def search_cves(keyword: str, max_results: int = 5) -> list[dict]:
             })
 
         _cache[keyword] = results
-        time.sleep(0.6)  # NVD rate limit: 5 req/30s without API key
+        time.sleep(6.5)  # NVD rate limit without API key: 5 req/30s → must wait ≥6s
         return results
 
     except Exception:

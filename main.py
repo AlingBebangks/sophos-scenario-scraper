@@ -20,6 +20,9 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
+# Ensure project root is on sys.path regardless of where the script is invoked from
+sys.path.insert(0, str(Path(__file__).parent))
+
 from rich.console import Console
 from rich.table import Table
 

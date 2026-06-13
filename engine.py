@@ -10,6 +10,10 @@ For each finding loaded from the feed file:
 Returns a list of enriched finding dicts ready for report generation.
 """
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent))
+
 from feedfile import extract_technique_ids
 from scrapers.mitre import fetch_techniques
 from scrapers.nvd import enrich_finding as nvd_enrich
