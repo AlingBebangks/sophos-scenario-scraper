@@ -188,6 +188,32 @@ def result_json(token: str):
     )
 
 
+@app.get("/result/{token}/pdf")
+def result_pdf(token: str):
+    job = _jobs.get(token)
+    if not job:
+        raise HTTPException(404, "Job not found.")
+    if job["status"] != "done":
+        raise HTTPException(425, "Job not complete yet.")
+
+    html_path = Path(job["html_path"])
+    pdf_path = html_path.with_suffix(".pdf")
+
+    # Generate PDF on first request, reuse on subsequent requests
+    if not pdf_path.exists():
+        try:
+            import report as rpt
+            pdf_path = rpt.write_pdf([], html_path=html_path)
+        except Exception as e:
+            raise HTTPException(500, f"PDF generation failed: {e}")
+
+    return FileResponse(
+        path=str(pdf_path),
+        media_type="application/pdf",
+        filename=pdf_path.name,
+    )
+
+
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     import uvicorn

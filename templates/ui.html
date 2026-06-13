@@ -201,6 +201,7 @@
     <p class="sub" id="result-sub"></p>
     <div class="result-actions">
       <button class="btn btn-primary" id="btn-view-report">📄 View Report</button>
+      <a class="btn btn-download" id="btn-download-pdf" href="#" download>⬇ Download PDF</a>
       <a class="btn btn-download" id="btn-download-json" href="#" download>⬇ Download JSON</a>
       <button class="btn btn-secondary" id="btn-new">↩ New Upload</button>
     </div>
@@ -229,6 +230,7 @@
   const resultCard  = document.getElementById('result-card');
   const resultSub   = document.getElementById('result-sub');
   const btnView     = document.getElementById('btn-view-report');
+  const btnPdf      = document.getElementById('btn-download-pdf');
   const btnJson     = document.getElementById('btn-download-json');
   const btnNew      = document.getElementById('btn-new');
   const reportFrame = document.getElementById('report-frame');
@@ -392,6 +394,8 @@
     progressCard.style.display = 'none';
     resultCard.style.display = 'block';
     resultSub.textContent = `${job.finding_count || ''} findings enriched · token: ${token.slice(0,12)}…`;
+    btnPdf.href = `/result/${token}/pdf`;
+    btnPdf.download = `report_${token.slice(0,8)}.pdf`;
     btnJson.href = `/result/${token}/json`;
     btnJson.download = `enriched_${token.slice(0,8)}.json`;
 
@@ -446,6 +450,7 @@
           ${j.status === 'done' ? '✓ Done' : j.status === 'error' ? '✗ Error' : '⟳ Running'}
         </span>
         ${j.status === 'done' ? `<a class="btn btn-secondary" style="padding:5px 12px;font-size:12px" href="/result/${j.token}/report" target="_blank">View</a>
+          <a class="btn btn-download" style="padding:5px 12px;font-size:12px" href="/result/${j.token}/pdf" download>PDF</a>
           <a class="btn btn-download" style="padding:5px 12px;font-size:12px" href="/result/${j.token}/json" download>JSON</a>` : ''}
       </div>`).join('');
   }
