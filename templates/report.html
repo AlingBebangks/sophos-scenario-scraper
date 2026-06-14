@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Firewall Audit — Scenario Analysis · {{ generated_at }}</title>
+<title>Enhanced Report — Firewall Assessment</title>
 <style>
   :root {
     --critical: #c0392b; --high: #e67e22; --medium: #d4a017;
@@ -21,6 +21,7 @@
     display: flex; align-items: baseline; justify-content: space-between;
   }
   .report-header .title { font-size: 15px; font-weight: 700; color: #e8ecf8; letter-spacing: 0.2px; }
+  .report-header .subtitle { font-size: 11px; color: var(--muted); margin-top: 2px; }
   .report-header .meta  { font-size: 11px; color: var(--muted); }
 
   /* ── Severity summary ── */
@@ -147,7 +148,7 @@
 
   /* ── Print ── */
   @media print {
-    @page { margin: 14mm 12mm; size: A4; }
+    @page { margin: 14mm 12mm; size: A4; margin-top: 0; }
     body { background: #fff !important; color: #111 !important; font-size: 11px; }
     .report-header { border-color: #ddd !important; }
     .report-header .title { color: #111 !important; }
@@ -186,8 +187,11 @@
 <body>
 
 <div class="report-header">
-  <span class="title">Firewall Audit — Scenario Analysis Report</span>
-  <span class="meta">Generated {{ generated_at }} &nbsp;·&nbsp; {{ findings|length }} findings</span>
+  <div>
+    <div class="title">Enhanced Report — Firewall Assessment</div>
+    <div class="subtitle">Sophos XG/SFOS · Scenario-Enriched Audit</div>
+  </div>
+  <span class="meta">{{ generated_at }} &nbsp;·&nbsp; {{ findings|length }} findings</span>
 </div>
 
 <div class="summary-row">
@@ -333,7 +337,7 @@
 </div>
 
 <div class="report-footer">
-  <span>Firewall Audit — Scenario Analysis Report</span>
+  <span>Enhanced Report — Firewall Assessment</span>
   <span>{{ generated_at }}</span>
 </div>
 
