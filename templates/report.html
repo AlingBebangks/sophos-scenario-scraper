@@ -3,199 +3,280 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Scenario Enrichment Report — {{ generated_at }}</title>
+<title>Firewall Audit — Scenario Analysis · {{ generated_at }}</title>
 <style>
   :root {
-    --critical: #c0392b; --high: #e67e22; --medium: #f1c40f;
-    --low: #27ae60; --info: #2980b9; --bg: #0f1117; --card: #1a1d27;
-    --border: #2c2f3e; --text: #dce1f0; --muted: #7a7f94;
+    --critical: #c0392b; --high: #e67e22; --medium: #d4a017;
+    --low: #27ae60; --info: #2980b9;
+    --bg: #0f1117; --card: #141826; --card2: #111420;
+    --border: #232638; --text: #d8dff0; --muted: #6b7280;
     --accent: #4f8ef7;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; }
-  header { background: #111420; border-bottom: 2px solid var(--accent); padding: 24px 40px; }
-  header h1 { font-size: 22px; color: #fff; letter-spacing: 0.5px; }
-  header .meta { color: var(--muted); font-size: 12px; margin-top: 4px; }
-  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px; line-height: 1.65; }
 
-  .summary-bar {
-    display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap;
+  /* ── Header ── */
+  .report-header {
+    padding: 18px 36px; border-bottom: 2px solid var(--border);
+    display: flex; align-items: baseline; justify-content: space-between;
   }
-  .sev-pill {
-    padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;
-    letter-spacing: 0.6px;
+  .report-header .title { font-size: 15px; font-weight: 700; color: #e8ecf8; letter-spacing: 0.2px; }
+  .report-header .meta  { font-size: 11px; color: var(--muted); }
+
+  /* ── Severity summary ── */
+  .summary-row {
+    display: flex; gap: 10px; padding: 14px 36px;
+    border-bottom: 1px solid var(--border); flex-wrap: wrap;
   }
+  .sev-pill { padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
   .sev-CRITICAL { background: var(--critical); color: #fff; }
   .sev-HIGH     { background: var(--high);     color: #fff; }
-  .sev-MEDIUM   { background: var(--medium);   color: #000; }
+  .sev-MEDIUM   { background: var(--medium);   color: #fff; }
   .sev-LOW      { background: var(--low);      color: #fff; }
   .sev-INFO     { background: var(--info);     color: #fff; }
 
+  /* ── Main content ── */
+  .container { max-width: 1060px; margin: 0 auto; padding: 28px 24px; }
+
+  /* ── Finding card ── */
   .finding-card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 8px; margin-bottom: 28px; overflow: hidden;
+    border: 1px solid var(--border); border-radius: 8px;
+    margin-bottom: 24px; overflow: hidden;
   }
   .card-header {
-    display: flex; align-items: center; gap: 12px;
-    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 18px; border-bottom: 1px solid var(--border);
+    background: #111420;
   }
   .sev-badge {
-    font-size: 11px; font-weight: 700; padding: 3px 10px;
-    border-radius: 4px; letter-spacing: 0.5px; white-space: nowrap;
+    font-size: 10px; font-weight: 800; padding: 3px 9px;
+    border-radius: 4px; letter-spacing: 0.6px; white-space: nowrap;
+    text-transform: uppercase;
   }
-  .card-header h2 { font-size: 15px; color: #fff; }
-  .card-header .category { color: var(--muted); font-size: 12px; margin-left: auto; }
+  .card-header h2 { font-size: 14px; font-weight: 700; color: #eef0f8; flex: 1; }
+  .card-category { font-size: 11px; color: var(--muted); white-space: nowrap; }
 
-  .card-body { padding: 18px 20px; }
-  .section-label {
-    font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
-    text-transform: uppercase; color: var(--accent); margin: 16px 0 6px;
+  .card-body { padding: 16px 18px; }
+
+  /* ── Section labels ── */
+  .lbl {
+    font-size: 9px; font-weight: 800; letter-spacing: 1.4px;
+    text-transform: uppercase; color: var(--accent);
+    margin: 18px 0 6px;
   }
-  .section-label:first-child { margin-top: 0; }
-  p.detail { color: #b0b8d0; margin-bottom: 8px; }
-  p.scenario { background: #12151e; border-left: 3px solid var(--accent);
-    padding: 10px 14px; border-radius: 0 4px 4px 0; color: #c8d0e8; font-size: 13px; }
+  .lbl:first-child { margin-top: 0; }
 
-  /* Techniques */
-  .technique-list { display: flex; flex-direction: column; gap: 10px; }
-  .technique-item { background: #12151e; border-radius: 6px; padding: 12px 14px; }
-  .technique-id { font-weight: 700; color: var(--accent); font-size: 13px; }
-  .technique-name { font-weight: 600; margin-left: 8px; }
-  .technique-desc { color: var(--muted); font-size: 12px; margin-top: 4px; }
-  .technique-link { font-size: 11px; color: #5a9cf7; text-decoration: none; }
-  .technique-link:hover { text-decoration: underline; }
+  /* ── Text blocks ── */
+  .txt { color: #a8b4cc; font-size: 13px; }
 
-  .proc-list { margin-top: 8px; }
-  .proc-item { border-left: 2px solid #2c2f3e; padding-left: 10px; margin-top: 6px; font-size: 12px; color: #a0a8c0; }
-  .proc-actor { font-weight: 600; color: #c8d0e8; }
+  /* ── Flagged configurations ── */
+  .config-block {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px 14px;
+  }
+  .config-block + .config-block { margin-top: 8px; }
+  .config-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 4px; }
+  .config-row:last-child { margin-bottom: 0; }
+  .config-key { font-size: 10px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.8px; min-width: 100px; padding-top: 1px; }
+  .config-val { color: #c0c8e0; font-size: 12px; font-family: 'Consolas', 'Courier New', monospace; }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+  .tag {
+    background: #1a1e30; border: 1px solid #2a2f48; border-radius: 4px;
+    padding: 2px 8px; font-size: 11px; color: #8090b8;
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+  .no-config { color: var(--muted); font-size: 12px; font-style: italic; }
 
-  /* CVE table */
-  table.cve-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  table.cve-table th { text-align: left; color: var(--muted); font-size: 11px;
-    border-bottom: 1px solid var(--border); padding: 6px 8px; }
-  table.cve-table td { padding: 7px 8px; border-bottom: 1px solid #1e2130; vertical-align: top; }
-  table.cve-table tr:last-child td { border-bottom: none; }
-  .cve-id { color: var(--accent); font-weight: 600; text-decoration: none; }
-  .cve-id:hover { text-decoration: underline; }
-  .cvss-badge { font-size: 11px; padding: 2px 7px; border-radius: 3px; font-weight: 700; }
-  .cvss-CRITICAL { background: var(--critical); color: #fff; }
-  .cvss-HIGH     { background: var(--high);     color: #fff; }
-  .cvss-MEDIUM   { background: var(--medium);   color: #000; }
-  .cvss-LOW      { background: var(--low);      color: #fff; }
-
-  /* News */
-  .news-list { display: flex; flex-direction: column; gap: 8px; }
-  .news-item { background: #12151e; border-radius: 6px; padding: 10px 14px; }
-  .news-title { color: #e0e6f8; font-weight: 600; font-size: 13px; text-decoration: none; }
-  .news-title:hover { text-decoration: underline; }
-  .news-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .news-excerpt { font-size: 12px; color: #8a90a8; margin-top: 5px; }
-
-  /* Affected rules */
-  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
-  .tag { background: #1e2235; border: 1px solid #2c3050; border-radius: 4px;
-    padding: 2px 8px; font-size: 11px; color: #8090c0; font-family: monospace; }
-
-  footer { text-align: center; color: var(--muted); font-size: 11px;
-    padding: 32px; border-top: 1px solid var(--border); margin-top: 16px; }
-
+  /* ── Scenario ── */
+  .scenario-wrap { margin-top: 4px; }
   .scenario-badge {
     display: inline-block; font-size: 10px; font-weight: 700;
     letter-spacing: 0.8px; text-transform: uppercase;
     padding: 2px 8px; border-radius: 4px; margin-bottom: 6px;
   }
-  .scenario-badge.real    { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid #10b981; }
-  .scenario-badge.theoretical { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid #f59e0b; }
+  .scenario-badge.real         { background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.4); }
+  .scenario-badge.theoretical  { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.4); }
+  .scenario-text {
+    background: var(--card2); border-left: 3px solid var(--accent);
+    padding: 10px 14px; border-radius: 0 4px 4px 0;
+    color: #bfc8e0; font-size: 13px; line-height: 1.7;
+  }
 
+  /* ── MITRE ── */
+  .technique-list { display: flex; flex-direction: column; gap: 8px; }
+  .technique-item { background: var(--card2); border-radius: 6px; padding: 10px 13px; border: 1px solid var(--border); }
+  .technique-id   { font-weight: 700; color: var(--accent); font-size: 12px; }
+  .technique-name { font-weight: 600; font-size: 12px; margin-left: 6px; }
+  .technique-link { font-size: 11px; color: #6aaaf7; text-decoration: none; margin-left: 8px; }
+  .technique-link:hover { text-decoration: underline; }
+  .technique-desc { color: var(--muted); font-size: 11px; margin-top: 5px; line-height: 1.5; }
+  .proc-list { margin-top: 7px; }
+  .proc-item { border-left: 2px solid var(--border); padding-left: 9px; margin-top: 5px; font-size: 11px; color: #8890a8; }
+  .proc-actor { font-weight: 600; color: #b0b8d0; }
+
+  /* ── CVE table ── */
+  table.cve-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.cve-table th { text-align: left; color: var(--muted); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.6px; text-transform: uppercase;
+    border-bottom: 1px solid var(--border); padding: 5px 8px; }
+  table.cve-table td { padding: 7px 8px; border-bottom: 1px solid #191c28; vertical-align: top; }
+  table.cve-table tr:last-child td { border-bottom: none; }
+  .cve-id { color: var(--accent); font-weight: 700; text-decoration: none; font-size: 12px; }
+  .cve-id:hover { text-decoration: underline; }
+  .cvss-badge { font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: 700; white-space: nowrap; }
+  .cvss-CRITICAL { background: var(--critical); color: #fff; }
+  .cvss-HIGH     { background: var(--high);     color: #fff; }
+  .cvss-MEDIUM   { background: var(--medium);   color: #fff; }
+  .cvss-LOW      { background: var(--low);      color: #fff; }
+
+  /* ── News ── */
+  .news-list { display: flex; flex-direction: column; gap: 7px; }
+  .news-item { background: var(--card2); border-radius: 6px; padding: 9px 13px; border: 1px solid var(--border); }
+  .news-title { color: #d0d8f0; font-weight: 600; font-size: 12px; text-decoration: none; }
+  .news-title:hover { text-decoration: underline; }
+  .news-meta    { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .news-excerpt { font-size: 11px; color: #7a8298; margin-top: 4px; line-height: 1.5; }
+
+  /* ── Footer ── */
+  .report-footer {
+    border-top: 1px solid var(--border); padding: 14px 36px;
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--muted); margin-top: 8px;
+  }
+
+  /* ── Print ── */
   @media print {
-    @page { margin: 15mm 12mm; size: A4; }
+    @page { margin: 14mm 12mm; size: A4; }
     body { background: #fff !important; color: #111 !important; font-size: 11px; }
-    header { background: #1a2340 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 14px 24px; }
-    header h1 { color: #fff !important; font-size: 16px; }
-    header .meta { color: #aab !important; }
-    .container { padding: 16px 0; }
-    .finding-card { border: 1px solid #ccc !important; background: #fafafa !important;
-      break-inside: avoid; page-break-inside: avoid; margin-bottom: 16px; }
-    .card-header { background: #eee !important; }
-    .card-header h2 { color: #111 !important; font-size: 13px; }
-    .category { color: #555 !important; }
-    .technique-item, .news-item { background: #f0f0f0 !important; }
-    p.detail, p.scenario, .technique-desc, .proc-item, .news-excerpt { color: #333 !important; }
-    .section-label { color: #1a5fbc !important; }
-    .technique-name { color: #111 !important; }
-    .news-meta, .muted { color: #666 !important; }
-    .cve-id { color: #1a5fbc !important; }
-    .technique-link { color: #1a5fbc !important; }
-    .news-title { color: #1a1a1a !important; }
+    .report-header { border-color: #ddd !important; }
+    .report-header .title { color: #111 !important; }
+    .report-header .meta  { color: #666 !important; }
+    .summary-row { border-color: #ddd !important; }
+    .finding-card { border-color: #ccc !important; background: #fafafa !important;
+      break-inside: avoid; page-break-inside: avoid; }
+    .card-header  { background: #f0f0f0 !important; border-color: #ddd !important; }
+    .card-header h2 { color: #111 !important; }
+    .card-category  { color: #555 !important; }
+    .config-block, .technique-item, .news-item { background: #f5f5f5 !important; border-color: #ddd !important; }
+    .scenario-text { background: #f5f5f5 !important; border-color: #1a5fbc !important; }
+    .txt, .config-val, .proc-item, .news-excerpt, .technique-desc { color: #333 !important; }
+    .lbl { color: #1a5fbc !important; }
+    .technique-name, .proc-actor, .card-header h2 { color: #111 !important; }
+    .news-meta, .config-key { color: #666 !important; }
+    .cve-id, .technique-link { color: #1a5fbc !important; }
+    .news-title { color: #111 !important; }
     a { color: #1a5fbc !important; }
-    .tag { background: #e8e8f0 !important; color: #445 !important; border-color: #bbc !important; }
+    .tag { background: #e8eaf2 !important; color: #334 !important; border-color: #ccd !important; }
+    .no-config { color: #888 !important; }
     table.cve-table th { color: #555 !important; border-color: #ccc !important; }
     table.cve-table td { color: #333 !important; border-color: #eee !important; }
-    footer { color: #888 !important; border-color: #ccc !important; }
-    .sev-pill, .sev-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .report-footer { border-color: #ddd !important; color: #888 !important; }
+    .sev-pill, .sev-badge, .cvss-badge, .scenario-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .sev-CRITICAL, .cvss-CRITICAL { background: #c0392b !important; color: #fff !important; }
     .sev-HIGH,     .cvss-HIGH     { background: #e67e22 !important; color: #fff !important; }
-    .sev-MEDIUM,   .cvss-MEDIUM   { background: #f1c40f !important; color: #000 !important; }
+    .sev-MEDIUM,   .cvss-MEDIUM   { background: #d4a017 !important; color: #fff !important; }
     .sev-LOW,      .cvss-LOW      { background: #27ae60 !important; color: #fff !important; }
     .sev-INFO                     { background: #2980b9 !important; color: #fff !important; }
+    .scenario-badge.real        { background: rgba(16,185,129,0.15) !important; color: #0a7a55 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .scenario-badge.theoretical { background: rgba(245,158,11,0.15) !important; color: #a06800 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
 </style>
 </head>
 <body>
-<header>
-  <h1>Sophos Firewall — Scenario Enrichment Report</h1>
-  <div class="meta">Generated: {{ generated_at }} &nbsp;|&nbsp; {{ findings|length }} findings enriched</div>
-</header>
+
+<div class="report-header">
+  <span class="title">Firewall Audit — Scenario Analysis Report</span>
+  <span class="meta">Generated {{ generated_at }} &nbsp;·&nbsp; {{ findings|length }} findings</span>
+</div>
+
+<div class="summary-row">
+  {% for sev, count in severity_counts.items() %}
+  <span class="sev-pill sev-{{ sev }}">{{ sev }} ({{ count }})</span>
+  {% endfor %}
+</div>
 
 <div class="container">
-
-  <!-- Severity summary bar -->
-  <div class="summary-bar">
-    {% for sev, count in severity_counts.items() %}
-    <span class="sev-pill sev-{{ sev }}">{{ sev }}: {{ count }}</span>
-    {% endfor %}
-  </div>
-
   {% for f in findings %}
   <div class="finding-card">
+
     <div class="card-header">
       <span class="sev-badge sev-{{ f.severity }}">{{ f.severity }}</span>
       <h2>{{ f.title }}</h2>
-      <span class="category">{{ f.category }}</span>
+      <span class="card-category">{{ f.category }}</span>
     </div>
+
     <div class="card-body">
 
-      <div class="section-label">Finding Detail</div>
-      <p class="detail">{{ f.detail }}</p>
+      <!-- 1. Finding detail from original report -->
+      <div class="lbl">Finding</div>
+      <p class="txt">{{ f.detail if f.detail else "No detail provided." }}</p>
 
-      <div class="section-label">Recommendation</div>
-      <p class="detail">{{ f.recommendation }}</p>
-
-      {% if f.scenario_summary and f.scenario_summary != "No scenario data retrieved." %}
-      <div class="section-label">Use Case Scenario</div>
-      <span class="scenario-badge {% if f.scenario_type == 'theoretical' %}theoretical{% else %}real{% endif %}">
-        {% if f.scenario_type == 'theoretical' %}⚠ Theoretical{% else %}✓ Real-World{% endif %}
-      </span>
-      <p class="scenario">{{ f.scenario_summary }}</p>
+      <!-- 2. Flagged configurations — the actual rules/systems from the input -->
+      <div class="lbl">Flagged Configurations</div>
+      {% if f.affected_rules or f.affected_systems %}
+      <div class="config-block">
+        {% if f.affected_rules %}
+        <div class="config-row">
+          <span class="config-key">Affected Rules</span>
+          <div>
+            <div class="tag-list">
+              {% for rule in f.affected_rules %}
+              <span class="tag">{{ rule }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        {% if f.affected_systems %}
+        <div class="config-row" {% if f.affected_rules %}style="margin-top:8px"{% endif %}>
+          <span class="config-key">Affected Systems</span>
+          <div>
+            <div class="tag-list">
+              {% for sys in f.affected_systems %}
+              <span class="tag">{{ sys }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% else %}
+      <p class="no-config">No specific rules or systems flagged in the source report.</p>
       {% endif %}
 
+      <!-- 3. Recommendation from original report -->
+      <div class="lbl">Recommendation</div>
+      <p class="txt">{{ f.recommendation if f.recommendation else "No recommendation provided." }}</p>
+
+      <!-- 4. Use case scenario (real-world or theoretical) -->
+      {% if f.scenario_summary %}
+      <div class="lbl">Use Case Scenario</div>
+      <div class="scenario-wrap">
+        <span class="scenario-badge {% if f.scenario_type == 'theoretical' %}theoretical{% else %}real{% endif %}">
+          {% if f.scenario_type == 'theoretical' %}⚠ Theoretical{% else %}✓ Real-World{% endif %}
+        </span>
+        <div class="scenario-text">{{ f.scenario_summary }}</div>
+      </div>
+      {% endif %}
+
+      <!-- 5. MITRE ATT&CK -->
       {% if f.mitre_techniques %}
-      <div class="section-label">MITRE ATT&CK Techniques</div>
+      <div class="lbl">MITRE ATT&amp;CK</div>
       <div class="technique-list">
         {% for t in f.mitre_techniques %}
         <div class="technique-item">
           <div>
             <span class="technique-id">{{ t.technique_id }}</span>
             {% if t.name %}<span class="technique-name">{{ t.name }}</span>{% endif %}
-            &nbsp;
-            <a class="technique-link" href="{{ t.url }}" target="_blank">↗ MITRE</a>
+            <a class="technique-link" href="{{ t.url }}" target="_blank">↗ mitre.org</a>
           </div>
           {% if t.description %}
           <div class="technique-desc">{{ t.description[:300] }}{% if t.description|length > 300 %}…{% endif %}</div>
           {% endif %}
           {% if t.procedure_examples %}
           <div class="proc-list">
-            {% for p in t.procedure_examples[:3] %}
+            {% for p in t.procedure_examples %}
             <div class="proc-item">
               <span class="proc-actor">{{ p.actor }}</span>
               {% if p.usage %} — {{ p.usage[:200] }}{% if p.usage|length > 200 %}…{% endif %}{% endif %}
@@ -208,11 +289,12 @@
       </div>
       {% endif %}
 
+      <!-- 6. CVEs -->
       {% if f.cves %}
-      <div class="section-label">Related CVEs (NVD)</div>
+      <div class="lbl">Related CVEs</div>
       <table class="cve-table">
         <thead>
-          <tr><th>CVE</th><th>CVSS</th><th>Published</th><th>Description</th></tr>
+          <tr><th>CVE ID</th><th>Score</th><th>Published</th><th>Description</th></tr>
         </thead>
         <tbody>
           {% for c in f.cves %}
@@ -220,35 +302,27 @@
             <td><a class="cve-id" href="{{ c.url }}" target="_blank">{{ c.cve_id }}</a></td>
             <td>
               {% if c.cvss_score %}
-              <span class="cvss-badge cvss-{{ c.cvss_severity }}">{{ c.cvss_score }} {{ c.cvss_severity }}</span>
+              <span class="cvss-badge cvss-{{ c.cvss_severity }}">{{ c.cvss_score }}</span>
               {% else %}—{% endif %}
             </td>
-            <td style="white-space:nowrap;color:#7a7f94">{{ c.published }}</td>
-            <td style="color:#a0a8c0">{{ c.description[:200] }}{% if c.description|length > 200 %}…{% endif %}</td>
+            <td style="white-space:nowrap;color:#6b7280;font-size:11px">{{ c.published }}</td>
+            <td class="txt" style="font-size:11px">{{ c.description[:200] }}{% if c.description|length > 200 %}…{% endif %}</td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
       {% endif %}
 
+      <!-- 7. News / incidents -->
       {% if f.news_articles %}
-      <div class="section-label">Real-World Incidents &amp; News</div>
+      <div class="lbl">Incident References</div>
       <div class="news-list">
         {% for a in f.news_articles %}
         <div class="news-item">
           <a class="news-title" href="{{ a.url }}" target="_blank">{{ a.title }}</a>
-          <div class="news-meta">{{ a.source }} {% if a.date %}· {{ a.date }}{% endif %}</div>
+          <div class="news-meta">{{ a.source }}{% if a.date %} · {{ a.date }}{% endif %}</div>
           {% if a.excerpt %}<div class="news-excerpt">{{ a.excerpt }}</div>{% endif %}
         </div>
-        {% endfor %}
-      </div>
-      {% endif %}
-
-      {% if f.affected_rules %}
-      <div class="section-label">Affected Rules</div>
-      <div class="tag-list">
-        {% for rule in f.affected_rules %}
-        <span class="tag">{{ rule }}</span>
         {% endfor %}
       </div>
       {% endif %}
@@ -256,8 +330,12 @@
     </div>
   </div>
   {% endfor %}
-
 </div>
-<footer>scenario-scraper · AIVAPT project · {{ generated_at }}</footer>
+
+<div class="report-footer">
+  <span>Firewall Audit — Scenario Analysis Report</span>
+  <span>{{ generated_at }}</span>
+</div>
+
 </body>
 </html>
