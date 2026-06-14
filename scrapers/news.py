@@ -112,7 +112,7 @@ def _scrape_bleepingcomputer(query: str) -> list[dict]:
         return []
 
 
-def fetch_news(finding_title: str, max_total: int = 6) -> list[dict]:
+def fetch_news(finding_title: str, max_total: int = 2) -> list[dict]:
     """
     Scrape news articles relevant to a finding title.
     Returns up to max_total articles from multiple sources.

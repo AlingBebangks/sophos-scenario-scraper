@@ -106,6 +106,6 @@ def search_cves(keyword: str, max_results: int = 5) -> list[dict]:
 
 
 def enrich_finding(finding_title: str) -> list[dict]:
-    """Convenience wrapper: derive keyword from title and return CVEs."""
+    """Convenience wrapper: derive keyword from title and return top 2 CVEs."""
     keyword = _keyword_for_finding(finding_title)
-    return search_cves(keyword)
+    return search_cves(keyword, max_results=2)

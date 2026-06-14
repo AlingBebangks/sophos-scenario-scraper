@@ -92,7 +92,7 @@ def _html_fallback(technique_id: str) -> dict:
                 proc_table = h2.find_next("table")
                 break
         if proc_table:
-            for row in proc_table.select("tbody tr"):
+            for row in proc_table.select("tbody tr")[:2]:
                 cells = row.find_all("td")
                 if len(cells) >= 3:
                     procedures.append({
@@ -161,7 +161,7 @@ def fetch_technique(technique_id: str) -> dict:
         rel_objects = [o for o in objects if o.get("type") == "relationship"
                        and o.get("relationship_type") == "uses"
                        and o.get("target_ref") == technique_obj.get("id")]
-        for rel in rel_objects[:5]:
+        for rel in rel_objects[:2]:
             src_id = rel.get("source_ref", "")
             src_obj = next((o for o in objects if o.get("id") == src_id), None)
             if src_obj:
